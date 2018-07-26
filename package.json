@@ -1,0 +1,19 @@
+{
+  "name": "splitwalletexport",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "exec": "node index.js"
+  },
+  "author": "Edmundo Lopez",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^5.2.0",
+    "eslint-config-google": "^0.9.1"
+  },
+  "dependencies": {
+    "fast-csv": "^2.4.1"
+  }
+}

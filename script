@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+'use strict';
+
+const csv = require('fast-csv');
+const fs = require('fs');
+const mxnRate = 0.05357;
+
+const header = 'account;category;currency;amount;ref_currency_amount;type;payment_type;payment_type_local;note;date;gps_latitude;gps_longitude;gps_accuracy_in_meters;warranty_in_month;transfer;payee;labels;envelope_id;custom_category'
+const writtables = {
+    'Chase': fs.createWriteStream('output/chase.csv', {encoding: 'utf8'}),
+    'Enlace Global': fs.createWriteStream('output/enlaceGlobal.csv', {encoding: 'utf8'}),
+    'Cash USA': fs.createWriteStream('output/cashUSA.csv', {encoding: 'utf8'}),
+    'Banorte Oro': fs.createWriteStream('output/banorteOro.csv', {encoding: 'utf8'}),
+    'Cash': fs.createWriteStream('output/cash.csv', {encoding: 'utf8'}),
+    'Inversión': fs.createWriteStream('output/inversion.csv', {encoding: 'utf8'}),
+}
+
+const csvWStream = csv.createWriteStream({ headers: true, delimiter: ';' });
+
+console.log('Working...')
+
+// write the headers on every file.
+Object.keys(writtables).forEach(key => writtables[key].write(header));
+
+csv.
+    fromPath('input/report.csv', {headers: true, delimiter: ';'})
+    .on('data', data => {
+        if (data.currency === 'USD') {
+            data.ref_currency_amount = data.amount;
+        } else {
+            data.ref_currency_amount = (Math.round((data.amount * mxnRate) * 100) / 100).toString();
+        }
+    })
+    .pipe(csvWStream);
+
+// When the csvWStream receives the stream, it has to process each row.
+csvWStream.on('data', data => {
+    let account = data.toString().split(';')[0].replace(/\r?\n|\r/, '');
+    if (account === 'account') {
+        return;
+    }
+    // write on different files.
+    writtables[account].write(data.toString());
+
+});
+
+csvWStream.on('end', () => console.log('Job finished!'))
+
